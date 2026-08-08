@@ -4,6 +4,21 @@ conda-smithy Change Log
 
 .. current developments
 
+v2026.8.9
+====================
+
+**Fixed:**
+
+* Fixed v1 recipe linting for conditional ``build.noarch`` values such as ``${{ "python" if use_noarch }}``. (#2425)
+* Restore missing executable bit on some artifact creation scripts (#2647)
+
+**Authors:**
+
+* H. Vetinari
+* Benjamin Bertrand
+
+
+
 v2026.8.5
 ====================
 
