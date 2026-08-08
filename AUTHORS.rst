@@ -156,3 +156,4 @@ Authors are sorted by number of commits.
 * pb01ka
 * Ben Williams
 * Scott Wang
+* Benjamin Bertrand
