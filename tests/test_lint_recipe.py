@@ -5358,6 +5358,72 @@ def test_lint_recipe_v1_abi3_cross_python_run_exports(text, expected_hint):
                 """),
             False,
         ),
+        # abi3audit test guarded by `if: is_abi3` -> no hint
+        (
+            "recipe.yaml",
+            textwrap.dedent("""
+                recipe:
+                  name: mypackage
+                  version: 1.0.0
+
+                outputs:
+                  - package:
+                      name: myoutput
+                    build:
+                      python:
+                        version_independent: ${{ is_abi3 }}
+                    requirements:
+                      host:
+                        - python ${{ python_min }}.*
+                        - if: is_abi3
+                          then:
+                            - python-abi3
+                      run:
+                        - python
+                    tests:
+                      - python:
+                          imports:
+                            - myoutput
+                      - if: is_abi3
+                        then:
+                          requirements:
+                            run:
+                              - abi3audit
+                          script:
+                            - if: unix
+                              then: abi3audit $SP_DIR/myoutput.abi3.so -s -v
+                              else: abi3audit %SP_DIR%/myoutput.pyd -s -v
+                """),
+            False,
+        ),
+        # a `noarch: generic` alias output ships no extension module -> no hint
+        (
+            "recipe.yaml",
+            textwrap.dedent("""
+                recipe:
+                  name: mypackage
+                  version: 1.0.0
+
+                outputs:
+                  - package:
+                      name: myoutput
+                    build:
+                      noarch: generic
+                      python:
+                        version_independent: true
+                    requirements:
+                      host:
+                        - python-abi3
+                        - python ${{ python_min }}.*
+                      run:
+                        - ${{ pin_subpackage('myoutput-impl') }}
+                    tests:
+                      - python:
+                          imports:
+                            - myoutput
+                """),
+            False,
+        ),
     ],
     ids=(f"recipe-{i}" for i in count(1)),
 )
