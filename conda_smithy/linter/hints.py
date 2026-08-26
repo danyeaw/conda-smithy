@@ -392,9 +392,10 @@ def hint_redundant_python_min(meta, recipe_text, recipe_version, hints):
 
 
 def _python_tests_cover_latest(tests_section, run_reqs):
-    """True if every python test covers the latest Python via a "*" entry,
-    or if the run requirements cap python's upper bound (making a latest-python
-    test entry redundant)."""
+    """Whether ``tests.*.python`` include a "latest" Python.
+
+    Checking ``python_min`` is handled separately.
+    """
     for req in flatten_v1_if_else(run_reqs or []):
         if isinstance(req, str) and req.strip().split()[0] == "python" and "<" in req:
             return True
@@ -402,16 +403,12 @@ def _python_tests_cover_latest(tests_section, run_reqs):
     for test in tests_section or []:
         if not isinstance(test, Mapping) or "python" not in test:
             continue
-        python_version = test.get("python", {}).get("python_version", {})
+        python_version = test["python"].get("python_version", [])
         if isinstance(python_version, str):
             python_version = [python_version]
-        if not isinstance(python_version, list):
-            python_version = []
-        # Check that the latest-Python marker is the exact entry `"*"`. Since
-        # flatten_v1_if_else always returns a list, `"*" in ...` will never
-        # (substring-)match for version pins like `${{ python_min }}.*`;
-        # v1 also forbids bare `- *`, so we know it must be a string.
-        if "*" not in flatten_v1_if_else(python_version):
+        if len(set(flatten_v1_if_else(python_version))) < 2:
+            return False
+        if all("python_min" in pv for pv in python_version):
             return False
     return True
 
